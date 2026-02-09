@@ -1,0 +1,12 @@
+api:
+  rate_limit:
+    requests_per_minute: 100
+  query_limits:
+    max_radius_km: 20000
+    max_results: 1000
+    default_limit: 100
+
+external_apis:
+  usgs:
+    endpoint: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
+    timeout_seconds: 10
