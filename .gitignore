@@ -33,3 +33,6 @@ Thumbs.db
 # Build artifacts
 /bin/
 /dist/
+
+.secrets.baseline
+configs/GeoPulse-GitHelpers.psm1
