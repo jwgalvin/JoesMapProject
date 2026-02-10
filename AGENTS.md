@@ -7,7 +7,7 @@ This document provides context and guidelines for AI coding assistants (GitHub C
 **GeoPulse** is a production-ready Go REST API that ingests and serves geospatial event data from the USGS Earthquake GeoJSON feed. Built with Domain-Driven Design (DDD) principles and Clean Architecture.
 
 **Tech Stack:**
-- Go 1.25
+- Go 1.23
 - SQLite3 with migrations (golang-migrate)
 - Gorilla Mux (HTTP routing)
 - testify (testing framework)
