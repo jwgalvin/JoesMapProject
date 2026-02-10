@@ -142,77 +142,83 @@ import (
 	"time"
 )
 
-// Event represents a geospatial event
+// Event represents a geospatial event (immutable design)
 type Event struct {
-	ID            string
-	EventType     EventType
-	Source        string
-	SourceEventID string
-	OccurredAt    time.Time
-	Location      Location
-	Magnitude     Magnitude
-	Depth         *float64 // Optional, in kilometers
-	Metadata      map[string]interface{}
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	id        string
+	location  Location
+	magnitude Magnitude
+	eventType Type
+	time      time.Time
+	place     string
+	status    string
+	updated   time.Time
 }
 
 // NewEvent creates a new Event with validation
 func NewEvent(
-	source string,
-	sourceEventID string,
-	eventType EventType,
-	occurredAt time.Time,
+	id string,
 	location Location,
+	place string,
 	magnitude Magnitude,
+	eventType Type,
+	eventTime time.Time,
+	status string,
 ) (*Event, error) {
-	if source == "" {
-		return nil, fmt.Errorf("source cannot be empty")
+	if id == "" {
+		return nil, fmt.Errorf("event ID cannot be empty")
 	}
-	if sourceEventID == "" {
-		return nil, fmt.Errorf("sourceEventID cannot be empty")
+	if eventTime.IsZero() {
+		return nil, fmt.Errorf("event time cannot be zero")
 	}
-	if !eventType.Valid() {
-		return nil, fmt.Errorf("invalid event type: %s", eventType)
+	if status == "" {
+		return nil, fmt.Errorf("event status cannot be empty")
 	}
 
-	now := time.Now()
-	
 	return &Event{
-		Source:        source,
-		SourceEventID: sourceEventID,
-		EventType:     eventType,
-		OccurredAt:    occurredAt,
-		Location:      location,
-		Magnitude:     magnitude,
-		Metadata:      make(map[string]interface{}),
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		id:        id,
+		location:  location,
+		place:     place,
+		magnitude: magnitude,
+		eventType: eventType,
+		time:      eventTime,
+		updated:   time.Now(),
+		status:    status,
 	}, nil
 }
 
-// SetDepth sets the depth of the event
-func (e *Event) SetDepth(depth float64) error {
-	if depth < 0 {
-		return fmt.Errorf("depth cannot be negative")
-	}
-	e.Depth = &depth
-	return nil
+// Getters (read-only access to enforce immutability)
+func (e *Event) ID() string           { return e.id }
+func (e *Event) Location() Location   { return e.location }
+func (e *Event) Magnitude() Magnitude { return e.magnitude }
+func (e *Event) Type() Type            { return e.eventType }
+func (e *Event) Time() time.Time       { return e.time }
+func (e *Event) Place() string         { return e.place }
+func (e *Event) Status() string        { return e.status }
+func (e *Event) Updated() time.Time    { return e.updated }
+
+// String returns a formatted string representation
+func (e *Event) String() string {
+	return fmt.Sprintf("Event ID: %s, Type: %s, Magnitude: %s, Location: %s, Place: %s, Time: %s",
+		e.id, e.eventType.String(), e.magnitude.String(), e.location.String(), e.Place(), e.time.Format(time.RFC3339))
 }
 
-// AddMetadata adds a metadata field
-func (e *Event) AddMetadata(key string, value interface{}) {
-	if e.Metadata == nil {
-		e.Metadata = make(map[string]interface{})
-	}
-	e.Metadata[key] = value
+// IsSignificant returns true if the event magnitude meets the threshold
+func (e *Event) IsSignificant(threshold float64) bool {
+	return e.magnitude.Value() >= threshold
 }
 
-// Update updates the event's mutable fields
-func (e *Event) Update(magnitude Magnitude, occurredAt time.Time) {
-	e.Magnitude = magnitude
-	e.OccurredAt = occurredAt
-	e.UpdatedAt = time.Now()
+// UpdateStatus returns a new Event with updated status (immutable pattern)
+func (e *Event) UpdateStatus(newStatus string, updatedTime time.Time) *Event {
+	return &Event{
+		id:        e.id,
+		location:  e.location,
+		place:     e.place,
+		magnitude: e.magnitude,
+		eventType: e.eventType,
+		time:      e.time,
+		status:    newStatus,
+		updated:   updatedTime,
+	}
 }
 ```
 
@@ -227,42 +233,82 @@ import (
 )
 
 // Repository defines the interface for event persistence
+// This lives in the domain layer and will be implemented in infrastructure layer
 type Repository interface {
 	// Save inserts a new event or updates existing one
 	Save(ctx context.Context, event *Event) error
 	
-	// FindByID retrieves an event by its ID
+	// FindByID retrieves an event by its unique ID
 	FindByID(ctx context.Context, id string) (*Event, error)
 	
-	// FindBySourceEventID retrieves an event by source and source event ID
-	FindBySourceEventID(ctx context.Context, source, sourceEventID string) (*Event, error)
-	
-	// Query retrieves events matching the given criteria
-	Query(ctx context.Context, criteria QueryCriteria) ([]*Event, error)
+	// FindAll retrieves events matching the given criteria
+	FindAll(ctx context.Context, criteria QueryCriteria) ([]*Event, error)
 	
 	// Count returns the total number of events matching the criteria
-	Count(ctx context.Context, criteria QueryCriteria) (int, error)
+	Count(ctx context.Context, criteria QueryCriteria) (int64, error)
+	
+	// Delete removes an event by ID
+	Delete(ctx context.Context, id string) error
 }
 
-// QueryCriteria defines event query parameters
+// QueryCriteria defines event query parameters for filtering and pagination
 type QueryCriteria struct {
+	// Magnitude filters
 	MinMagnitude *float64
 	MaxMagnitude *float64
-	EventTypes   []EventType
-	Location     *Location
-	RadiusKm     *float64
-	FromTime     *time.Time
-	ToTime       *time.Time
-	Limit        int
-	Offset       int
+	
+	// Type filter
+	EventTypes []Type
+	
+	// Location-based filters
+	Location *Location
+	RadiusKm *float64 // Used with Location for proximity search
+	
+	// Time range filters
+	FromTime *time.Time
+	ToTime   *time.Time
+	
+	// Status filter
+	Statuses []string
+	
+	// Pagination
+	Limit  int
+	Offset int
+	
+	// Sorting
+	OrderBy   string // e.g., "time", "magnitude", "updated"
+	Ascending bool
 }
 
-// NewQueryCriteria creates a QueryCriteria with default values
+// NewQueryCriteria creates a QueryCriteria with sensible defaults
 func NewQueryCriteria() QueryCriteria {
 	return QueryCriteria{
-		Limit:  100,
-		Offset: 0,
+		Limit:     100,
+		Offset:    0,
+		OrderBy:   "time",
+		Ascending: false, // Most recent first by default
 	}
+}
+
+// WithMagnitudeRange sets magnitude filters (fluent API)
+func (qc QueryCriteria) WithMagnitudeRange(min, max float64) QueryCriteria {
+	qc.MinMagnitude = &min
+	qc.MaxMagnitude = &max
+	return qc
+}
+
+// WithTimeRange sets time range filters (fluent API)
+func (qc QueryCriteria) WithTimeRange(from, to time.Time) QueryCriteria {
+	qc.FromTime = &from
+	qc.ToTime = &to
+	return qc
+}
+
+// WithPagination sets pagination parameters (fluent API)
+func (qc QueryCriteria) WithPagination(limit, offset int) QueryCriteria {
+	qc.Limit = limit
+	qc.Offset = offset
+	return qc
 }
 ```
 

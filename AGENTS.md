@@ -348,19 +348,20 @@ internal/domain/event/
 - ✅ Project structure and scaffolding (Step 01)
 - ✅ Build tooling (Makefile, linting, testing)
 - ✅ Configuration management (.env, config.yaml)
-- ✅ Domain model implementation (Step 02)
+- ✅ Domain model implementation (Step 02) - nearly complete
   - EventType value object with tests (100% coverage)
   - Magnitude value object with tests
-  - Location value object with tests
-  - Event entity with all getters
+  - Location value object with tests (with depth validation)
+  - Event entity with immutable design and full test coverage
 - ✅ PowerShell Git helper functions (listening, git-report, git-sha, git-fixup, git-fixup-staged)
+- ✅ GitHub Actions CI/CD pipeline (lint, format, vet, test, build)
 
 **Next Steps:**
-- ⏳ Event entity tests (Step 02 completion)
-- ⏳ Repository interfaces and implementations
-- ⏳ Use case/application services
-- ⏳ HTTP handlers and routing
-- ⏳ Database migrations
+- ⏳ Repository interface (Step 02 completion - final task)
+- ⏳ Database schema and migrations (Step 03)
+- ⏳ Repository implementation (Step 04)
+- ⏳ Use case/application services (Step 06)
+- ⏳ HTTP handlers and routing (Step 07)
 - ⏳ Integration tests
 - ⏳ Docker and deployment
 
