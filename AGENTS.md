@@ -83,14 +83,55 @@ internal/
 - Use testify for assertions: `assert`, `require`
 - Aim for >70% coverage
 - Table-driven tests for multiple scenarios
+- **Use shared test fixtures** to follow DRY principle - define common test data once and reuse
+- **Use t.Run() for subtests** to organize tests into logical groups
 - Test file structure:
   ```go
-  func TestFunctionName(t *testing.T) {
-      // Arrange
-      // Act
-      // Assert
+  // Shared fixtures at package level (reuse across multiple test functions)
+  var validLocations = []struct {
+      name      string
+      latitude  float64
+      longitude float64
+      depth     float64
+  }{
+      {name: "Los Angeles", latitude: 34.05, longitude: -118.25, depth: 10.0},
+      {name: "Tokyo", latitude: 35.68, longitude: 139.76, depth: 50.0},
+      // ... more test cases
+  }
+  
+  func TestNewLocation(t *testing.T) {
+      t.Run("Valid locations", func(t *testing.T) {
+          for _, tc := range validLocations {
+              t.Run(tc.name, func(t *testing.T) {
+                  loc, err := NewLocation(tc.latitude, tc.longitude, tc.depth)
+                  assert.NoError(t, err)
+                  assert.Equal(t, tc.latitude, loc.Latitude())
+              })
+          }
+      })
+      
+      t.Run("Invalid cases", func(t *testing.T) {
+          // Test error conditions
+      })
+  }
+  
+  func TestLocation_String(t *testing.T) {
+      // Reuse the same validLocations fixture
+      for _, tc := range validLocations {
+          t.Run(tc.name, func(t *testing.T) {
+              loc, _ := NewLocation(tc.latitude, tc.longitude, tc.depth)
+              result := loc.String()
+              assert.Contains(t, result, "Lat:")
+          })
+      }
   }
   ```
+- **Benefits of this pattern:**
+  - Eliminates duplicate test data across functions
+  - Makes tests more maintainable (update fixture once, all tests benefit)
+  - Clear organization with subtests ("Valid cases", "Edge cases", "Invalid cases")
+  - Better test output showing hierarchical structure
+  - Easy to identify which specific case failed
 
 ### Value Objects
 - Always immutable
@@ -252,10 +293,21 @@ internal/domain/event/
 ### When Writing Code
 1. **Follow the architecture** - respect layer boundaries
 2. **Write tests** - include test files with implementation
-3. **Validate inputs** - especially in value object constructors
-4. **Use context** - always include `context.Context` in function signatures for I/O
-5. **Document exports** - add godoc comments for all exported symbols
-6. **Handle errors properly** - wrap with context, return to caller
+3. **Use shared test fixtures** - define test data once at package level, reuse across test functions (DRY principle)
+4. **Organize tests with t.Run()** - group related test cases into subtests ("Valid cases", "Edge cases", "Invalid cases")
+5. **Validate inputs** - especially in value object constructors
+6. **Use context** - always include `context.Context` in function signatures for I/O
+7. **Document exports** - add godoc comments for all exported symbols
+8. **Handle errors properly** - wrap with context, return to caller
+
+### When Writing Tests
+1. **Create shared fixtures** - define test data at package level for reuse
+2. **Use t.Run() subtests** - organize test cases hierarchically
+3. **Avoid duplication** - if the same test data appears in multiple functions, extract to a fixture
+4. **Use descriptive names** - test case names should clearly describe what's being tested
+5. **Test boundaries** - include edge cases (min/max values, zero, negative) in separate subtests
+6. **Use require for setup** - use `require.NoError()` for test setup that must succeed
+7. **Use assert for checks** - use `assert.*()` for the actual test assertions
 
 ### When Refactoring
 1. **Run tests first** - ensure they pass before changes
@@ -273,6 +325,8 @@ internal/domain/event/
 - [ ] Follows Clean Architecture layer boundaries
 - [ ] All exports have godoc comments
 - [ ] Tests included and passing (`make test`)
+- [ ] Tests use shared fixtures (DRY principle)
+- [ ] Tests organized with t.Run() subtests
 - [ ] No linter errors (`make lint`)
 - [ ] Error handling with proper wrapping
 - [ ] Context passed to I/O operations
@@ -294,9 +348,15 @@ internal/domain/event/
 - ✅ Project structure and scaffolding (Step 01)
 - ✅ Build tooling (Makefile, linting, testing)
 - ✅ Configuration management (.env, config.yaml)
+- ✅ Domain model implementation (Step 02)
+  - EventType value object with tests (100% coverage)
+  - Magnitude value object with tests
+  - Location value object with tests
+  - Event entity with all getters
+- ✅ PowerShell Git helper functions (listening, git-report, git-sha, git-fixup, git-fixup-staged)
 
 **Next Steps:**
-- ⏳ Domain model implementation (Step 02)
+- ⏳ Event entity tests (Step 02 completion)
 - ⏳ Repository interfaces and implementations
 - ⏳ Use case/application services
 - ⏳ HTTP handlers and routing
