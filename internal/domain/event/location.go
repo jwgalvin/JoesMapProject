@@ -17,6 +17,10 @@ func NewLocation(latitude, longitude, depth float64) (Location, error) {
 		return Location{}, fmt.Errorf("longitude must be between -180 and 180 degrees")
 	}
 
+	if depth < -10.0 || depth > 1000.0 {
+		return Location{}, fmt.Errorf("depth must be between -10 and 1000 km")
+	}
+
 	return Location{
 		Latitude:  latitude,
 		Longitude: longitude,
