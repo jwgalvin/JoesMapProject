@@ -31,22 +31,22 @@ func main() {
 		}
 	}
 
-	// Open database connection
-	fmt.Println("📝 Creating database...")
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		log.Fatalf("Failed to open database: %v", err)
-	}
-	defer db.Close()
-
-	// Read and execute migration
+	// Read and execute migration before opening database
 	fmt.Println("🔧 Running migrations...")
 	schema, err := os.ReadFile(migrationFile)
 	if err != nil {
 		log.Fatalf("Failed to read migration file: %v", err)
 	}
 
+	// Open database connection
+	fmt.Println("📝 Creating database...")
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		log.Fatalf("Failed to open database: %v", err)
+	}
+
 	if _, err := db.Exec(string(schema)); err != nil {
+		db.Close()
 		log.Fatalf("Failed to execute migration: %v", err)
 	}
 
@@ -57,10 +57,12 @@ func main() {
 		fmt.Println("🌍 Seeding database...")
 		seedData, err := os.ReadFile(seedFile)
 		if err != nil {
+			db.Close()
 			log.Fatalf("Failed to read seed file: %v", err)
 		}
 
 		if _, err := db.Exec(string(seedData)); err != nil {
+			db.Close()
 			log.Fatalf("Failed to seed database: %v", err)
 		}
 
@@ -68,6 +70,7 @@ func main() {
 		var count int
 		err = db.QueryRow("SELECT COUNT(*) FROM events").Scan(&count)
 		if err != nil {
+			db.Close()
 			log.Fatalf("Failed to count events: %v", err)
 		}
 
@@ -100,5 +103,8 @@ func main() {
 				fmt.Printf("  M%.1f - %s (%s)\n", mag, location, eventTime[:10])
 			}
 		}
+		rows.Close()
 	}
+
+	db.Close()
 }

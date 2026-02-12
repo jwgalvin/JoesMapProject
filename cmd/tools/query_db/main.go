@@ -45,7 +45,10 @@ func showMenu(db *sql.DB) {
 
 	// Count all events
 	var count int
-	db.QueryRow("SELECT COUNT(*) FROM events").Scan(&count)
+	if err := db.QueryRow("SELECT COUNT(*) FROM events").Scan(&count); err != nil {
+		log.Printf("Warning: Failed to get event count: %v", err)
+		count = 0
+	}
 	fmt.Printf("1. Total events: %d\n", count)
 	fmt.Println()
 
@@ -121,10 +124,13 @@ func showMenu(db *sql.DB) {
 	// Depth statistics
 	fmt.Println("5. Depth Statistics:")
 	var avgDepth, minDepth, maxDepth float64
-	db.QueryRow("SELECT AVG(depth_km), MIN(depth_km), MAX(depth_km) FROM events").Scan(&avgDepth, &minDepth, &maxDepth)
-	fmt.Printf("   Average: %.1f km\n", avgDepth)
-	fmt.Printf("   Shallowest: %.1f km\n", minDepth)
-	fmt.Printf("   Deepest: %.1f km\n", maxDepth)
+	if err := db.QueryRow("SELECT AVG(depth_km), MIN(depth_km), MAX(depth_km) FROM events").Scan(&avgDepth, &minDepth, &maxDepth); err != nil {
+		log.Printf("Warning: Failed to get depth statistics: %v", err)
+	} else {
+		fmt.Printf("   Average: %.1f km\n", avgDepth)
+		fmt.Printf("   Shallowest: %.1f km\n", minDepth)
+		fmt.Printf("   Deepest: %.1f km\n", maxDepth)
+	}
 	fmt.Println()
 
 	// Usage instructions
@@ -155,11 +161,11 @@ func runCustomQuery(db *sql.DB, query string) {
 	if err != nil {
 		log.Fatalf("Query error: %v", err)
 	}
-	defer rows.Close()
 
 	// Get column names
 	columns, err := rows.Columns()
 	if err != nil {
+		rows.Close()
 		log.Fatalf("Failed to get columns: %v", err)
 	}
 
@@ -201,6 +207,7 @@ func runCustomQuery(db *sql.DB, query string) {
 		rowCount++
 	}
 
+	rows.Close()
 	fmt.Println()
 	fmt.Printf("(%d rows)\n", rowCount)
 }
