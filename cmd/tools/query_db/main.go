@@ -12,7 +12,7 @@ import (
 
 func main() {
 	dbPath := "./data/geopulse.db"
-	
+
 	// Check if database exists
 	if _, err := os.Stat(dbPath); err != nil {
 		log.Fatalf("❌ Database not found at %s\nRun: go run ./cmd/tools/setup_db", dbPath)
