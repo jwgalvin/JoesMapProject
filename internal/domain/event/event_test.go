@@ -32,121 +32,143 @@ var (
 
 // validEvents contains test cases for valid event configurations (shared fixture)
 var validEvents = []struct {
-	name      string
-	id        string
-	location  Location
-	place     string
-	magnitude Magnitude
-	eventType Type
-	eventTime time.Time
-	status    string
+	name        string
+	id          string
+	location    Location
+	place       string
+	magnitude   Magnitude
+	eventType   Type
+	eventTime   time.Time
+	status      string
+	description string
+	url         string
 }{
 	{
-		name:      "Los Angeles earthquake",
-		id:        "us1000abc1",
-		location:  testLocationLA,
-		place:     "5 km NW of Los Angeles, CA",
-		magnitude: testMagModerate,
-		eventType: testTypeEarthquake,
-		eventTime: testTime1,
-		status:    "reviewed",
+		name:        "Los Angeles earthquake",
+		id:          "us1000abc1",
+		location:    testLocationLA,
+		place:       "5 km NW of Los Angeles, CA",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime1,
+		status:      "reviewed",
+		description: "M 5.0 - 5 km NW of Los Angeles, CA",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us1000abc1",
 	},
 	{
-		name:      "Tokyo deep earthquake",
-		id:        "us2000xyz2",
-		location:  testLocationTokyo,
-		place:     "20 km E of Tokyo, Japan",
-		magnitude: testMagLarge,
-		eventType: testTypeEarthquake,
-		eventTime: testTime2,
-		status:    "automatic",
+		name:        "Tokyo deep earthquake",
+		id:          "us2000xyz2",
+		location:    testLocationTokyo,
+		place:       "20 km E of Tokyo, Japan",
+		magnitude:   testMagLarge,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime2,
+		status:      "automatic",
+		description: "M 7.2 - 20 km E of Tokyo, Japan",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us2000xyz2",
 	},
 	{
-		name:      "Paris explosion",
-		id:        "us3000def3",
-		location:  testLocationParis,
-		place:     "Paris, France",
-		magnitude: testMagSmall,
-		eventType: testTypeExplosion,
-		eventTime: testTime3,
-		status:    "reviewed",
+		name:        "Paris explosion",
+		id:          "us3000def3",
+		location:    testLocationParis,
+		place:       "Paris, France",
+		magnitude:   testMagSmall,
+		eventType:   testTypeExplosion,
+		eventTime:   testTime3,
+		status:      "reviewed",
+		description: "M 2.5 - Paris, France",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us3000def3",
 	},
 	{
-		name:      "Mexico deep event",
-		id:        "us4000ghi4",
-		location:  testLocationDeep,
-		place:     "Mexico City, Mexico",
-		magnitude: testMagModerate,
-		eventType: testTypeEarthquake,
-		eventTime: testTime1,
-		status:    "automatic",
+		name:        "Mexico deep event",
+		id:          "us4000ghi4",
+		location:    testLocationDeep,
+		place:       "Mexico City, Mexico",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime1,
+		status:      "automatic",
+		description: "M 5.0 - Mexico City, Mexico",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us4000ghi4",
 	},
 	{
-		name:      "Small magnitude event",
-		id:        "us5000jkl5",
-		location:  testLocationLA,
-		place:     "Southern California",
-		magnitude: testMagSmall,
-		eventType: testTypeEarthquake,
-		eventTime: testTime2,
-		status:    "reviewed",
+		name:        "Small magnitude event",
+		id:          "us5000jkl5",
+		location:    testLocationLA,
+		place:       "Southern California",
+		magnitude:   testMagSmall,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime2,
+		status:      "reviewed",
+		description: "M 2.5 - Southern California",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us5000jkl5",
 	},
 	{
-		name:      "Negative magnitude (precursor)",
-		id:        "us6000mno6",
-		location:  testLocationParis,
-		place:     "Central France",
-		magnitude: testMagNegative,
-		eventType: testTypeOther,
-		eventTime: testTime3,
-		status:    "automatic",
+		name:        "Negative magnitude (precursor)",
+		id:          "us6000mno6",
+		location:    testLocationParis,
+		place:       "Central France",
+		magnitude:   testMagNegative,
+		eventType:   testTypeOther,
+		eventTime:   testTime3,
+		status:      "automatic",
+		description: "M -0.5 - Central France",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us6000mno6",
 	},
 }
 
 // invalidEvents contains test cases for invalid event configurations
 var invalidEvents = []struct {
-	name      string
-	id        string
-	location  Location
-	place     string
-	magnitude Magnitude
-	eventType Type
-	eventTime time.Time
-	status    string
-	wantErr   string
+	name        string
+	id          string
+	location    Location
+	place       string
+	magnitude   Magnitude
+	eventType   Type
+	eventTime   time.Time
+	status      string
+	description string
+	url         string
+	wantErr     string
 }{
 	{
-		name:      "Empty ID",
-		id:        "",
-		location:  testLocationLA,
-		place:     "Los Angeles, CA",
-		magnitude: testMagModerate,
-		eventType: testTypeEarthquake,
-		eventTime: testTime1,
-		status:    "reviewed",
-		wantErr:   "event ID cannot be empty",
+		name:        "Empty ID",
+		id:          "",
+		location:    testLocationLA,
+		place:       "Los Angeles, CA",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime1,
+		status:      "reviewed",
+		description: "Test event",
+		url:         "https://test.usgs.gov/test",
+		wantErr:     "event ID cannot be empty",
 	},
 	{
-		name:      "Zero time",
-		id:        "us7000pqr7",
-		location:  testLocationLA,
-		place:     "Los Angeles, CA",
-		magnitude: testMagModerate,
-		eventType: testTypeEarthquake,
-		eventTime: time.Time{}, // Zero value
-		status:    "reviewed",
-		wantErr:   "event time cannot be zero",
+		name:        "Zero time",
+		id:          "us7000pqr7",
+		location:    testLocationLA,
+		place:       "Los Angeles, CA",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   time.Time{}, // Zero value
+		status:      "reviewed",
+		description: "Test event",
+		url:         "https://test.usgs.gov/test",
+		wantErr:     "event time cannot be zero",
 	},
 	{
-		name:      "Empty status",
-		id:        "us8000stu8",
-		location:  testLocationLA,
-		place:     "Los Angeles, CA",
-		magnitude: testMagModerate,
-		eventType: testTypeEarthquake,
-		eventTime: testTime1,
-		status:    "",
-		wantErr:   "event status cannot be empty",
+		name:        "Empty status",
+		id:          "us8000stu8",
+		location:    testLocationLA,
+		place:       "Los Angeles, CA",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime1,
+		status:      "",
+		description: "Test event",
+		url:         "https://test.usgs.gov/test",
+		wantErr:     "event status cannot be empty",
 	},
 }
 
@@ -164,6 +186,8 @@ func TestNewEvent(t *testing.T) {
 					tc.eventType,
 					tc.eventTime,
 					tc.status,
+					tc.description,
+					tc.url,
 				)
 
 				require.NoError(t, err, "NewEvent should not return error for valid input")
@@ -191,6 +215,8 @@ func TestNewEvent(t *testing.T) {
 					tc.eventType,
 					tc.eventTime,
 					tc.status,
+					tc.description,
+					tc.url,
 				)
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tc.wantErr)
@@ -212,6 +238,8 @@ func TestEvent_String(t *testing.T) {
 					tc.eventType,
 					tc.eventTime,
 					tc.status,
+					tc.description,
+					tc.url,
 				)
 				require.NoError(t, err)
 
@@ -274,6 +302,8 @@ func TestEvent_String(t *testing.T) {
 					tc.eventType,
 					tc.eventTime,
 					tc.status,
+					tc.description,
+					tc.url,
 				)
 				require.NoError(t, err)
 
@@ -298,6 +328,8 @@ func TestEvent_Getters(t *testing.T) {
 					tc.eventType,
 					tc.eventTime,
 					tc.status,
+					tc.description,
+					tc.url,
 				)
 				require.NoError(t, err)
 
@@ -308,6 +340,8 @@ func TestEvent_Getters(t *testing.T) {
 				assert.Equal(t, tc.eventType, event.Type())
 				assert.Equal(t, tc.eventTime, event.Time())
 				assert.Equal(t, tc.status, event.Status())
+				assert.Equal(t, tc.description, event.Description())
+				assert.Equal(t, tc.url, event.URL())
 				assert.False(t, event.Updated().IsZero(), "Updated time should be set to current time")
 			})
 		}
@@ -352,6 +386,8 @@ func TestEvent_IsSignificant(t *testing.T) {
 				testTypeEarthquake,
 				testTime1,
 				"reviewed",
+				"Test event",
+				"https://test.usgs.gov/test123",
 			)
 			require.NoError(t, err)
 
@@ -370,6 +406,8 @@ func TestEvent_UpdateStatus(t *testing.T) {
 			testTypeEarthquake,
 			testTime1,
 			"reviewed",
+			"M 5.0 - Los Angeles, CA",
+			"https://earthquake.usgs.gov/earthquakes/eventpage/us1000abc",
 		)
 
 		require.NoError(t, err)
