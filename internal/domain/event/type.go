@@ -31,14 +31,14 @@ var validEventTypes = map[string]string{
 	"volcanic eruption":  EventTypeVolcanicEruption,
 }
 
-type EventType struct {
+type Type struct {
 	value string
 }
 
-// Constructor for EventType
-func NewEventType(value string) (EventType, error) {
+// Constructor for Type
+func NewType(value string) (Type, error) {
 	if value == "" {
-		return EventType{}, fmt.Errorf("value type cannot be empty")
+		return Type{}, fmt.Errorf("value type cannot be empty")
 	}
 
 	normalizeValue := strings.ToLower(strings.TrimSpace(value))
@@ -48,17 +48,17 @@ func NewEventType(value string) (EventType, error) {
 		knownValue = EventTypeOther // Default to "other" if not recognized
 	}
 
-	return EventType{
+	return Type{
 		value: knownValue,
 	}, nil
 }
 
 // Helper methods below
-// string representation of EventType
-func (et EventType) String() string {
+// string representation of Type
+func (et Type) String() string {
 	return et.value
 }
 
-func (et EventType) IsKnown() bool {
+func (et Type) IsKnown() bool {
 	return et.value != EventTypeOther
 }
