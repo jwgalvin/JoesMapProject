@@ -3,8 +3,8 @@ module github.com/jwgal/JoesMapProject
 go 1.24.0
 
 require (
-	github.com/mattn/go-sqlite3 v1.14.34
 	github.com/stretchr/testify v1.11.1
+	modernc.org/sqlite v1.45.0
 )
 
 require (
@@ -21,5 +21,4 @@ require (
 	modernc.org/libc v1.67.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.45.0 // indirect
 )
