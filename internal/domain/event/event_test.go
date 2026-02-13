@@ -150,7 +150,6 @@ func invalidEventFixtures() map[string]invalidEventFixture {
 func TestNewEvent(t *testing.T) {
 	t.Run("Valid Events", func(t *testing.T) {
 		for name, tc := range validEventFixtures() {
-			tc := tc
 			t.Run(name, func(t *testing.T) {
 				got, err := NewEvent(
 					tc.id,
@@ -177,7 +176,6 @@ func TestNewEvent(t *testing.T) {
 
 	t.Run("Invalid Events", func(t *testing.T) {
 		for name, tc := range invalidEventFixtures() {
-			tc := tc
 			t.Run(name, func(t *testing.T) {
 				_, err := NewEvent(
 					tc.id,
@@ -198,7 +196,6 @@ func TestNewEvent(t *testing.T) {
 func TestEvent_String(t *testing.T) {
 	t.Run("String format validation", func(t *testing.T) {
 		for name, tc := range validEventFixtures() {
-			tc := tc
 			t.Run(name, func(t *testing.T) {
 				got, err := NewEvent(
 					tc.id,
@@ -280,7 +277,6 @@ func TestEvent_String(t *testing.T) {
 		}
 
 		for name, tt := range tests {
-			tt := tt
 			t.Run(name, func(t *testing.T) {
 				event, err := NewEvent(
 					tt.fixture.id,
@@ -305,7 +301,6 @@ func TestEvent_String(t *testing.T) {
 func TestEvent_Getters(t *testing.T) {
 	t.Run("All getters return correct values", func(t *testing.T) {
 		for name, tc := range validEventFixtures() {
-			tc := tc
 			t.Run(name, func(t *testing.T) {
 				event, err := NewEvent(
 					tc.id,
