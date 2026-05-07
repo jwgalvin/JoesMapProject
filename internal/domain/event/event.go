@@ -18,7 +18,7 @@ type Event struct {
 	updated     time.Time
 }
 
-func NewEvent(id string, location Location, place string, magnitude Magnitude, eventType Type, eventTime time.Time, status, description, url string) (*Event, error) {
+func NewEvent(id string, location Location, place string, magnitude Magnitude, eventType Type, eventTime time.Time, updatedTime time.Time, status, description, url string) (*Event, error) {
 	if id == "" {
 		return nil, fmt.Errorf("event ID cannot be empty")
 	}
@@ -36,7 +36,7 @@ func NewEvent(id string, location Location, place string, magnitude Magnitude, e
 		magnitude:   magnitude,
 		eventType:   eventType,
 		time:        eventTime,
-		updated:     time.Now(),
+		updated:     updatedTime,
 		status:      status,
 		description: description,
 		url:         url,

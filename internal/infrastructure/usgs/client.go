@@ -115,6 +115,7 @@ func convertFeature(f *Feature) (*event.Event, error) {
 		mag,
 		evtType,
 		time.UnixMilli(f.Properties.Time),
+		time.UnixMilli(f.Properties.Updated),
 		status,
 		f.Properties.Title,
 		f.Properties.URL,
