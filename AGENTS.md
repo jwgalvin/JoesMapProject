@@ -348,18 +348,28 @@ internal/domain/event/
 - ✅ Project structure and scaffolding (Step 01)
 - ✅ Build tooling (Makefile, linting, testing)
 - ✅ Configuration management (.env, config.yaml)
-- ✅ Domain model implementation (Step 02) - nearly complete
+- ✅ Domain model implementation (Step 02) - **COMPLETE**
   - EventType value object with tests (100% coverage)
   - Magnitude value object with tests
   - Location value object with tests (with depth validation)
-  - Event entity with immutable design and full test coverage
+  - Event entity with immutable design and full test coverage (pointer receivers for performance)
+  - QueryCriteria for repository filtering
+  - Domain layer: **99.0% test coverage**
+- ✅ SQLite repository implementation (Infrastructure layer)
+  - SQLiteEventRepository with Save, FindbyID, FindAll, Count, Delete methods
+  - Flexible time parsing (RFC3339, RFC3339Nano, SQLite formats)
+  - Upsert pattern (ON CONFLICT UPDATE) for Save
+  - Query filtering by magnitude, time range, event type, location radius
+  - Pagination support
+  - In-memory SQLite tests with shared fixtures
+  - Infrastructure/persistence layer: **59.4% test coverage**
 - ✅ PowerShell Git helper functions (listening, git-report, git-sha, git-fixup, git-fixup-staged)
 - ✅ GitHub Actions CI/CD pipeline (lint, format, vet, test, build)
+- ✅ Pure-Go SQLite driver (modernc.org/sqlite) - no CGO required
 
 **Next Steps:**
-- ⏳ Repository interface (Step 02 completion - final task)
 - ⏳ Database schema and migrations (Step 03)
-- ⏳ Repository implementation (Step 04)
+- ⏳ Repository interface definition in domain layer
 - ⏳ Use case/application services (Step 06)
 - ⏳ HTTP handlers and routing (Step 07)
 - ⏳ Integration tests

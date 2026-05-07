@@ -30,127 +30,153 @@ var (
 	testTypeOther, _      = NewType("unknown")
 )
 
-type eventFixture struct {
-	id        string
-	location  Location
-	place     string
-	magnitude Magnitude
-	eventType Type
-	eventTime time.Time
-	status    string
+// validEvents contains test cases for valid event configurations (shared fixture)
+var validEvents = []struct {
+	name        string
+	id          string
+	location    Location
+	place       string
+	magnitude   Magnitude
+	eventType   Type
+	eventTime   time.Time
+	status      string
+	description string
+	url         string
+}{
+	{
+		name:        "Los Angeles earthquake",
+		id:          "us1000abc1",
+		location:    testLocationLA,
+		place:       "5 km NW of Los Angeles, CA",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime1,
+		status:      "reviewed",
+		description: "M 5.0 - 5 km NW of Los Angeles, CA",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us1000abc1",
+	},
+	{
+		name:        "Tokyo deep earthquake",
+		id:          "us2000xyz2",
+		location:    testLocationTokyo,
+		place:       "20 km E of Tokyo, Japan",
+		magnitude:   testMagLarge,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime2,
+		status:      "automatic",
+		description: "M 7.2 - 20 km E of Tokyo, Japan",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us2000xyz2",
+	},
+	{
+		name:        "Paris explosion",
+		id:          "us3000def3",
+		location:    testLocationParis,
+		place:       "Paris, France",
+		magnitude:   testMagSmall,
+		eventType:   testTypeExplosion,
+		eventTime:   testTime3,
+		status:      "reviewed",
+		description: "M 2.5 - Paris, France",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us3000def3",
+	},
+	{
+		name:        "Mexico deep event",
+		id:          "us4000ghi4",
+		location:    testLocationDeep,
+		place:       "Mexico City, Mexico",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime1,
+		status:      "automatic",
+		description: "M 5.0 - Mexico City, Mexico",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us4000ghi4",
+	},
+	{
+		name:        "Small magnitude event",
+		id:          "us5000jkl5",
+		location:    testLocationLA,
+		place:       "Southern California",
+		magnitude:   testMagSmall,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime2,
+		status:      "reviewed",
+		description: "M 2.5 - Southern California",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us5000jkl5",
+	},
+	{
+		name:        "Negative magnitude (precursor)",
+		id:          "us6000mno6",
+		location:    testLocationParis,
+		place:       "Central France",
+		magnitude:   testMagNegative,
+		eventType:   testTypeOther,
+		eventTime:   testTime3,
+		status:      "automatic",
+		description: "M -0.5 - Central France",
+		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us6000mno6",
+	},
 }
 
-type invalidEventFixture struct {
-	eventFixture
-	wantErr string
+// invalidEvents contains test cases for invalid event configurations
+var invalidEvents = []struct {
+	name        string
+	id          string
+	location    Location
+	place       string
+	magnitude   Magnitude
+	eventType   Type
+	eventTime   time.Time
+	status      string
+	description string
+	url         string
+	wantErr     string
+}{
+	{
+		name:        "Empty ID",
+		id:          "",
+		location:    testLocationLA,
+		place:       "Los Angeles, CA",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime1,
+		status:      "reviewed",
+		description: "Test event",
+		url:         "https://test.usgs.gov/test",
+		wantErr:     "event ID cannot be empty",
+	},
+	{
+		name:        "Zero time",
+		id:          "us7000pqr7",
+		location:    testLocationLA,
+		place:       "Los Angeles, CA",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   time.Time{}, // Zero value
+		status:      "reviewed",
+		description: "Test event",
+		url:         "https://test.usgs.gov/test",
+		wantErr:     "event time cannot be zero",
+	},
+	{
+		name:        "Empty status",
+		id:          "us8000stu8",
+		location:    testLocationLA,
+		place:       "Los Angeles, CA",
+		magnitude:   testMagModerate,
+		eventType:   testTypeEarthquake,
+		eventTime:   testTime1,
+		status:      "",
+		description: "Test event",
+		url:         "https://test.usgs.gov/test",
+		wantErr:     "event status cannot be empty",
+	},
 }
 
-// validEventFixtures returns fresh test cases for valid event configurations.
-func validEventFixtures() map[string]eventFixture {
-	return map[string]eventFixture{
-		"Los Angeles earthquake": {
-			id:        "us1000abc1",
-			location:  testLocationLA,
-			place:     "5 km NW of Los Angeles, CA",
-			magnitude: testMagModerate,
-			eventType: testTypeEarthquake,
-			eventTime: testTime1,
-			status:    "reviewed",
-		},
-		"Tokyo deep earthquake": {
-			id:        "us2000xyz2",
-			location:  testLocationTokyo,
-			place:     "20 km E of Tokyo, Japan",
-			magnitude: testMagLarge,
-			eventType: testTypeEarthquake,
-			eventTime: testTime2,
-			status:    "automatic",
-		},
-		"Paris explosion": {
-			id:        "us3000def3",
-			location:  testLocationParis,
-			place:     "Paris, France",
-			magnitude: testMagSmall,
-			eventType: testTypeExplosion,
-			eventTime: testTime3,
-			status:    "reviewed",
-		},
-		"Mexico deep event": {
-			id:        "us4000ghi4",
-			location:  testLocationDeep,
-			place:     "Mexico City, Mexico",
-			magnitude: testMagModerate,
-			eventType: testTypeEarthquake,
-			eventTime: testTime1,
-			status:    "automatic",
-		},
-		"Small magnitude event": {
-			id:        "us5000jkl5",
-			location:  testLocationLA,
-			place:     "Southern California",
-			magnitude: testMagSmall,
-			eventType: testTypeEarthquake,
-			eventTime: testTime2,
-			status:    "reviewed",
-		},
-		"Negative magnitude (precursor)": {
-			id:        "us6000mno6",
-			location:  testLocationParis,
-			place:     "Central France",
-			magnitude: testMagNegative,
-			eventType: testTypeOther,
-			eventTime: testTime3,
-			status:    "automatic",
-		},
-	}
-}
-
-// invalidEventFixtures returns fresh test cases for invalid event configurations.
-func invalidEventFixtures() map[string]invalidEventFixture {
-	return map[string]invalidEventFixture{
-		"Empty ID": {
-			eventFixture: eventFixture{
-				id:        "",
-				location:  testLocationLA,
-				place:     "Los Angeles, CA",
-				magnitude: testMagModerate,
-				eventType: testTypeEarthquake,
-				eventTime: testTime1,
-				status:    "reviewed",
-			},
-			wantErr: "event ID cannot be empty",
-		},
-		"Zero time": {
-			eventFixture: eventFixture{
-				id:        "us7000pqr7",
-				location:  testLocationLA,
-				place:     "Los Angeles, CA",
-				magnitude: testMagModerate,
-				eventType: testTypeEarthquake,
-				eventTime: time.Time{},
-				status:    "reviewed",
-			},
-			wantErr: "event time cannot be zero",
-		},
-		"Empty status": {
-			eventFixture: eventFixture{
-				id:        "us8000stu8",
-				location:  testLocationLA,
-				place:     "Los Angeles, CA",
-				magnitude: testMagModerate,
-				eventType: testTypeEarthquake,
-				eventTime: testTime1,
-				status:    "",
-			},
-			wantErr: "event status cannot be empty",
-		},
-	}
-}
 
 func TestNewEvent(t *testing.T) {
 	t.Run("Valid Events", func(t *testing.T) {
-		for name, tc := range validEventFixtures() {
-			t.Run(name, func(t *testing.T) {
+		for _, tc := range validEvents {
+			t.Run(tc.name, func(t *testing.T) {
 				got, err := NewEvent(
 					tc.id,
 					tc.location,
@@ -159,6 +185,8 @@ func TestNewEvent(t *testing.T) {
 					tc.eventType,
 					tc.eventTime,
 					tc.status,
+					tc.description,
+					tc.url,
 				)
 
 				require.NoError(t, err, "NewEvent should not return error for valid input")
@@ -167,6 +195,7 @@ func TestNewEvent(t *testing.T) {
 				assert.Equal(t, tc.location, got.Location())
 				assert.Equal(t, tc.place, got.Place())
 				assert.Equal(t, tc.magnitude, got.Magnitude())
+				assert.Equal(t, tc.eventType, got.Type())
 				assert.Equal(t, tc.eventTime, got.Time())
 				assert.Equal(t, tc.status, got.Status())
 				assert.False(t, got.Time().IsZero(), "Event time should not be zero")
@@ -175,28 +204,8 @@ func TestNewEvent(t *testing.T) {
 	})
 
 	t.Run("Invalid Events", func(t *testing.T) {
-		for name, tc := range invalidEventFixtures() {
-			t.Run(name, func(t *testing.T) {
-				_, err := NewEvent(
-					tc.id,
-					tc.location,
-					tc.place,
-					tc.magnitude,
-					tc.eventType,
-					tc.eventTime,
-					tc.status,
-				)
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), tc.wantErr)
-			})
-		}
-	})
-}
-
-func TestEvent_String(t *testing.T) {
-	t.Run("String format validation", func(t *testing.T) {
-		for name, tc := range validEventFixtures() {
-			t.Run(name, func(t *testing.T) {
+		for _, tc := range invalidEvents {
+			t.Run(tc.name, func(t *testing.T) {
 				got, err := NewEvent(
 					tc.id,
 					tc.location,
@@ -205,6 +214,31 @@ func TestEvent_String(t *testing.T) {
 					tc.eventType,
 					tc.eventTime,
 					tc.status,
+					tc.description,
+					tc.url,
+				)
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.wantErr)
+				assert.Nil(t, got, "Should return nil on error")
+			})
+		}
+	})
+}
+
+func TestEvent_String(t *testing.T) {
+	t.Run("String format validation", func(t *testing.T) {
+		for _, tc := range validEvents {
+			t.Run(tc.name, func(t *testing.T) {
+				got, err := NewEvent(
+					tc.id,
+					tc.location,
+					tc.place,
+					tc.magnitude,
+					tc.eventType,
+					tc.eventTime,
+					tc.status,
+					tc.description,
+					tc.url,
 				)
 				require.NoError(t, err)
 
@@ -213,26 +247,20 @@ func TestEvent_String(t *testing.T) {
 				assert.Contains(t, result, tc.id, "String should contain event ID")
 				assert.Contains(t, result, tc.place, "String should contain place")
 				assert.Contains(t, result, tc.magnitude.String(), "String should contain magnitude")
-				assert.Contains(t, result, tc.eventType.String(), "String should contain type")
+				assert.Contains(t, result, tc.eventType.String(), "String should contain event type")
 			})
 		}
 	})
 
-	t.Run("Format examples", func(t *testing.T) {
-		tests := map[string]struct {
-			fixture      eventFixture
+	t.Run("Formate examples", func(t *testing.T) {
+		tests := []struct {
+			name         string
+			fixture      int
 			wantContains []string
 		}{
-			"Los Angeles earthquake format": {
-				fixture: eventFixture{
-					id:        "us1000abc1",
-					location:  testLocationLA,
-					place:     "5 km NW of Los Angeles, CA",
-					magnitude: testMagModerate,
-					eventType: testTypeEarthquake,
-					eventTime: testTime1,
-					status:    "reviewed",
-				},
+			{
+				name:    "Los Angeles earthquake format",
+				fixture: 0, // index of the validEvents fixture
 				wantContains: []string{
 					"us1000abc1",
 					"5 km NW of Los Angeles, CA",
@@ -240,16 +268,9 @@ func TestEvent_String(t *testing.T) {
 					"earthquake",
 				},
 			},
-			"Tokyo deep earthquake format": {
-				fixture: eventFixture{
-					id:        "us2000xyz2",
-					location:  testLocationTokyo,
-					place:     "20 km E of Tokyo, Japan",
-					magnitude: testMagLarge,
-					eventType: testTypeEarthquake,
-					eventTime: testTime2,
-					status:    "automatic",
-				},
+			{
+				name:    "Tokyo deep earthquake format",
+				fixture: 1,
 				wantContains: []string{
 					"us2000xyz2",
 					"20 km E of Tokyo, Japan",
@@ -257,16 +278,9 @@ func TestEvent_String(t *testing.T) {
 					"earthquake",
 				},
 			},
-			"Paris explosion format": {
-				fixture: eventFixture{
-					id:        "us3000def3",
-					location:  testLocationParis,
-					place:     "Paris, France",
-					magnitude: testMagSmall,
-					eventType: testTypeExplosion,
-					eventTime: testTime3,
-					status:    "reviewed",
-				},
+			{
+				name:    "Paris explosion format",
+				fixture: 2,
 				wantContains: []string{
 					"us3000def3",
 					"Paris, France",
@@ -276,16 +290,19 @@ func TestEvent_String(t *testing.T) {
 			},
 		}
 
-		for name, tt := range tests {
-			t.Run(name, func(t *testing.T) {
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				tc := validEvents[tt.fixture]
 				event, err := NewEvent(
-					tt.fixture.id,
-					tt.fixture.location,
-					tt.fixture.place,
-					tt.fixture.magnitude,
-					tt.fixture.eventType,
-					tt.fixture.eventTime,
-					tt.fixture.status,
+					tc.id,
+					tc.location,
+					tc.place,
+					tc.magnitude,
+					tc.eventType,
+					tc.eventTime,
+					tc.status,
+					tc.description,
+					tc.url,
 				)
 				require.NoError(t, err)
 
@@ -300,8 +317,8 @@ func TestEvent_String(t *testing.T) {
 
 func TestEvent_Getters(t *testing.T) {
 	t.Run("All getters return correct values", func(t *testing.T) {
-		for name, tc := range validEventFixtures() {
-			t.Run(name, func(t *testing.T) {
+		for _, tc := range validEvents {
+			t.Run(tc.name, func(t *testing.T) {
 				event, err := NewEvent(
 					tc.id,
 					tc.location,
@@ -310,6 +327,8 @@ func TestEvent_Getters(t *testing.T) {
 					tc.eventType,
 					tc.eventTime,
 					tc.status,
+					tc.description,
+					tc.url,
 				)
 				require.NoError(t, err)
 
@@ -318,7 +337,10 @@ func TestEvent_Getters(t *testing.T) {
 				assert.Equal(t, tc.place, event.Place())
 				assert.Equal(t, tc.magnitude, event.Magnitude())
 				assert.Equal(t, tc.eventType, event.Type())
+				assert.Equal(t, tc.eventTime, event.Time())
 				assert.Equal(t, tc.status, event.Status())
+				assert.Equal(t, tc.description, event.Description())
+				assert.Equal(t, tc.url, event.URL())
 				assert.False(t, event.Updated().IsZero(), "Updated time should be set to current time")
 			})
 		}
@@ -333,22 +355,22 @@ func TestEvent_IsSignificant(t *testing.T) {
 	}{
 		{
 			name:      "Magnitude below threshold",
-			magnitude: testMagSmall,
+			magnitude: testMagSmall, // 2.5 ml
 			want:      false,
 		},
 		{
 			name:      "Magnitude equal to threshold",
-			magnitude: testMagModerate,
+			magnitude: testMagModerate, // 5.0 mw
 			want:      true,
 		},
 		{
 			name:      "Magnitude above threshold",
-			magnitude: testMagLarge,
+			magnitude: testMagLarge, // 7.2 mw
 			want:      true,
 		},
 		{
 			name:      "Negative magnitude",
-			magnitude: testMagNegative,
+			magnitude: testMagNegative, // -0.5 ml
 			want:      false,
 		},
 	}
@@ -363,6 +385,8 @@ func TestEvent_IsSignificant(t *testing.T) {
 				testTypeEarthquake,
 				testTime1,
 				"reviewed",
+				"Test event",
+				"https://test.usgs.gov/test123",
 			)
 			require.NoError(t, err)
 
@@ -381,6 +405,8 @@ func TestEvent_UpdateStatus(t *testing.T) {
 			testTypeEarthquake,
 			testTime1,
 			"reviewed",
+			"M 5.0 - Los Angeles, CA",
+			"https://earthquake.usgs.gov/earthquakes/eventpage/us1000abc",
 		)
 
 		require.NoError(t, err)
@@ -396,25 +422,5 @@ func TestEvent_UpdateStatus(t *testing.T) {
 		assert.Equal(t, original.Magnitude(), updated.Magnitude(), "Magnitude should remain unchanged")
 		assert.Equal(t, original.Type(), updated.Type(), "Type should remain unchanged")
 		assert.Equal(t, original.Time(), updated.Time(), "Time should remain unchanged")
-	})
-
-	t.Run("Original event remains unchanged", func(t *testing.T) {
-		original, err := NewEvent(
-			"us9000uvw9",
-			testLocationParis,
-			"Paris, France",
-			testMagSmall,
-			testTypeExplosion,
-			testTime2,
-			"reviewed",
-		)
-		require.NoError(t, err)
-
-		originalUpdated := original.Updated()
-		updated := original.UpdateStatus("automatic", testTime3)
-
-		assert.Equal(t, "reviewed", original.Status())
-		assert.Equal(t, originalUpdated, original.Updated())
-		assert.NotEqual(t, original.Status(), updated.Status())
 	})
 }

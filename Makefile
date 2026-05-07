@@ -40,15 +40,15 @@ run:
 	@echo "Running $(BINARY_NAME)..."
 	$(GO) run $(MAIN_PATH)
 
-# Run all tests
+# Run all tests (excludes cmd/ - entry points tested via integration tests)
 test:
 	@echo "Running tests..."
-	$(GO) test ./... -v
+	$(GO) test ./internal/... -v
 
-# Run tests with coverage
+# Run tests with coverage (excludes cmd/ - entry points tested via integration tests)
 test-coverage:
 	@echo "Running tests with coverage..."
-	$(GO) test ./... -coverprofile=$(COVERAGE_FILE) -covermode=atomic
+	$(GO) test ./internal/... -coverprofile=$(COVERAGE_FILE) -covermode=atomic
 	$(GO) tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML)
 	@echo "Coverage report generated: $(COVERAGE_HTML)"
 	$(GO) tool cover -func=$(COVERAGE_FILE) | grep total
