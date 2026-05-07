@@ -85,7 +85,7 @@ func setupTestDB(t *testing.T) *sql.DB {
 }
 
 // mustNewEvent creates an event or panics (for test fixtures only)
-func mustNewEvent(id string, location event.Location, place string, magnitude event.Magnitude, eventType event.Type, eventTime time.Time, updatedTime time.Time, status, description, url string) *event.Event {
+func mustNewEvent(id string, location event.Location, place string, magnitude event.Magnitude, eventType event.Type, eventTime, updatedTime time.Time, status, description, url string) *event.Event {
 	e, err := event.NewEvent(id, location, place, magnitude, eventType, eventTime, updatedTime, status, description, url)
 	if err != nil {
 		panic(err)
