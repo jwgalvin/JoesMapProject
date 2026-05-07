@@ -172,7 +172,6 @@ var invalidEvents = []struct {
 	},
 }
 
-// we should follow the DRY principle and use shared fixtures for valid event configurations in our tests. This allows us to easily add more test cases without duplicating the setup code for creating valid events.
 
 func TestNewEvent(t *testing.T) {
 	t.Run("Valid Events", func(t *testing.T) {
