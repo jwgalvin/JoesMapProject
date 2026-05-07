@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jwgal/JoesMapProject/internal/domain/event"
+	"github.com/jwgal/geopulse/internal/domain/event"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite" // Pure-Go SQLite driver

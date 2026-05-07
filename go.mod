@@ -1,4 +1,4 @@
-module github.com/jwgal/JoesMapProject
+module github.com/jwgal/geopulse
 
 go 1.24.0
 

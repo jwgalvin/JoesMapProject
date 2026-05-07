@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jwgal/JoesMapProject/internal/domain/event"
+	"github.com/jwgal/geopulse/internal/domain/event"
 )
 
 const insertEventQuery = `
