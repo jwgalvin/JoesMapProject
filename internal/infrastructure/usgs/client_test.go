@@ -37,7 +37,7 @@ func validFeature() Feature {
 }
 
 // feedJSON encodes a GeoJSONResponse to JSON for use in httptest handlers.
-func feedJSON(t *testing.T, feed GeoJSONResponse) []byte {
+func feedJSON(t *testing.T, feed *GeoJSONResponse) []byte {
 	t.Helper()
 	b, err := json.Marshal(feed)
 	require.NoError(t, err)
@@ -355,7 +355,7 @@ func TestFetchEvents(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				body := feedJSON(t, tt.feed)
+				body := feedJSON(t, &tt.feed)
 				ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusOK)
@@ -386,7 +386,7 @@ func TestFetchEvents(t *testing.T) {
 			Type:     "FeatureCollection",
 			Features: []Feature{badFeature, goodFeature},
 		}
-		body := feedJSON(t, feed)
+		body := feedJSON(t, &feed)
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -408,7 +408,7 @@ func TestFetchEvents(t *testing.T) {
 			Type:     "FeatureCollection",
 			Features: []Feature{bad},
 		}
-		body := feedJSON(t, feed)
+		body := feedJSON(t, &feed)
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -463,7 +463,7 @@ func TestFetchEvents(t *testing.T) {
 	t.Run("Cancelled context", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(feedJSON(t, GeoJSONResponse{Features: []Feature{validFeature()}}))
+			_, _ = w.Write(feedJSON(t, &GeoJSONResponse{Features: []Feature{validFeature()}}))
 		}))
 		defer ts.Close()
 
@@ -480,7 +480,7 @@ func TestFetchEvents(t *testing.T) {
 			assert.Equal(t, "application/json", r.Header.Get("Accept"))
 			assert.Equal(t, "GeoPulse/1.0", r.Header.Get("User-Agent"))
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(feedJSON(t, GeoJSONResponse{}))
+			_, _ = w.Write(feedJSON(t, &GeoJSONResponse{}))
 		}))
 		defer ts.Close()
 
