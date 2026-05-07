@@ -8,7 +8,9 @@
 
 # Test coverage
 *.out
+coverage
 coverage.html
+$CoverageFile
 
 # Database files
 *.db
