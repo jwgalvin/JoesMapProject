@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/jwgal/JoesMapProject/internal/domain/event"
 )
+
+const userAgent = "GeoPulse/1.0"
 
 // Client fetches earthquake event data from the USGS GeoJSON feed.
 type Client struct {
@@ -28,12 +31,14 @@ func NewClient(baseURL string, timeout time.Duration) *Client {
 // FetchEvents retrieves earthquake events from the USGS feed and converts
 // them into domain Event objects. Features that fail conversion are skipped.
 func (c *Client) FetchEvents(ctx context.Context) ([]*event.Event, error) {
+	slog.Info("usgs: fetching events", "url", c.baseURL)
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "GeoPulse/1.0")
+	req.Header.Set("User-Agent", userAgent)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -52,13 +57,17 @@ func (c *Client) FetchEvents(ctx context.Context) ([]*event.Event, error) {
 	}
 
 	events := make([]*event.Event, 0, len(feed.Features))
+	skipped := 0
 	for i := range feed.Features {
 		evt, err := convertFeature(&feed.Features[i])
 		if err != nil {
+			slog.Warn("usgs: skipping feature", "id", feed.Features[i].ID, "err", err)
+			skipped++
 			continue
 		}
 		events = append(events, evt)
 	}
+	slog.Info("usgs: fetch complete", "total", len(feed.Features), "converted", len(events), "skipped", skipped)
 	return events, nil
 }
 
