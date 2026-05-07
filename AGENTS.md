@@ -13,6 +13,9 @@ This document provides context and guidelines for AI coding assistants (GitHub C
 - testify (testing framework)
 - golangci-lint (linting)
 
+**Module Name:**
+The Go module is `github.com/jwgal/geopulse` (defined in `go.mod`). All internal import paths must use this prefix, e.g. `github.com/jwgal/geopulse/internal/domain/event`. The workspace folder is named `JoesMapProject` — do **not** use that name in import paths.
+
 **Key Goals:**
 - Production-ready code quality (>80% test coverage)
 - Clean Architecture with clear layer boundaries
