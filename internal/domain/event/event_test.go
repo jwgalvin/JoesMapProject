@@ -172,7 +172,6 @@ var invalidEvents = []struct {
 	},
 }
 
-
 func TestNewEvent(t *testing.T) {
 	t.Run("Valid Events", func(t *testing.T) {
 		for _, tc := range validEvents {
