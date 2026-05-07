@@ -10,9 +10,12 @@ import (
 
 var (
 	// Helper time values for tests
-	testTime1 = time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
-	testTime2 = time.Date(2024, 2, 20, 14, 45, 0, 0, time.UTC)
-	testTime3 = time.Date(2024, 3, 10, 8, 15, 0, 0, time.UTC)
+	testTime1    = time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
+	testTime2    = time.Date(2024, 2, 20, 14, 45, 0, 0, time.UTC)
+	testTime3    = time.Date(2024, 3, 10, 8, 15, 0, 0, time.UTC)
+	testUpdated1 = time.Date(2024, 1, 15, 11, 0, 0, 0, time.UTC)
+	testUpdated2 = time.Date(2024, 2, 20, 15, 0, 0, 0, time.UTC)
+	testUpdated3 = time.Date(2024, 3, 10, 9, 0, 0, 0, time.UTC)
 
 	// Common test value objects (must be valid)
 	testLocationLA, _    = NewLocation(34.05, -118.25, 10.0)
@@ -39,6 +42,7 @@ var validEvents = []struct {
 	magnitude   Magnitude
 	eventType   Type
 	eventTime   time.Time
+	updatedTime time.Time
 	status      string
 	description string
 	url         string
@@ -51,6 +55,7 @@ var validEvents = []struct {
 		magnitude:   testMagModerate,
 		eventType:   testTypeEarthquake,
 		eventTime:   testTime1,
+		updatedTime: testUpdated1,
 		status:      "reviewed",
 		description: "M 5.0 - 5 km NW of Los Angeles, CA",
 		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us1000abc1",
@@ -63,6 +68,7 @@ var validEvents = []struct {
 		magnitude:   testMagLarge,
 		eventType:   testTypeEarthquake,
 		eventTime:   testTime2,
+		updatedTime: testUpdated2,
 		status:      "automatic",
 		description: "M 7.2 - 20 km E of Tokyo, Japan",
 		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us2000xyz2",
@@ -75,6 +81,7 @@ var validEvents = []struct {
 		magnitude:   testMagSmall,
 		eventType:   testTypeExplosion,
 		eventTime:   testTime3,
+		updatedTime: testUpdated3,
 		status:      "reviewed",
 		description: "M 2.5 - Paris, France",
 		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us3000def3",
@@ -87,6 +94,7 @@ var validEvents = []struct {
 		magnitude:   testMagModerate,
 		eventType:   testTypeEarthquake,
 		eventTime:   testTime1,
+		updatedTime: testUpdated1,
 		status:      "automatic",
 		description: "M 5.0 - Mexico City, Mexico",
 		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us4000ghi4",
@@ -99,6 +107,7 @@ var validEvents = []struct {
 		magnitude:   testMagSmall,
 		eventType:   testTypeEarthquake,
 		eventTime:   testTime2,
+		updatedTime: testUpdated2,
 		status:      "reviewed",
 		description: "M 2.5 - Southern California",
 		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us5000jkl5",
@@ -111,6 +120,7 @@ var validEvents = []struct {
 		magnitude:   testMagNegative,
 		eventType:   testTypeOther,
 		eventTime:   testTime3,
+		updatedTime: testUpdated3,
 		status:      "automatic",
 		description: "M -0.5 - Central France",
 		url:         "https://earthquake.usgs.gov/earthquakes/eventpage/us6000mno6",
@@ -126,6 +136,7 @@ var invalidEvents = []struct {
 	magnitude   Magnitude
 	eventType   Type
 	eventTime   time.Time
+	updatedTime time.Time
 	status      string
 	description string
 	url         string
@@ -172,7 +183,6 @@ var invalidEvents = []struct {
 	},
 }
 
-
 func TestNewEvent(t *testing.T) {
 	t.Run("Valid Events", func(t *testing.T) {
 		for _, tc := range validEvents {
@@ -184,6 +194,7 @@ func TestNewEvent(t *testing.T) {
 					tc.magnitude,
 					tc.eventType,
 					tc.eventTime,
+					tc.updatedTime,
 					tc.status,
 					tc.description,
 					tc.url,
@@ -213,6 +224,7 @@ func TestNewEvent(t *testing.T) {
 					tc.magnitude,
 					tc.eventType,
 					tc.eventTime,
+					tc.updatedTime,
 					tc.status,
 					tc.description,
 					tc.url,
@@ -236,6 +248,7 @@ func TestEvent_String(t *testing.T) {
 					tc.magnitude,
 					tc.eventType,
 					tc.eventTime,
+					tc.updatedTime,
 					tc.status,
 					tc.description,
 					tc.url,
@@ -300,6 +313,7 @@ func TestEvent_String(t *testing.T) {
 					tc.magnitude,
 					tc.eventType,
 					tc.eventTime,
+					tc.updatedTime,
 					tc.status,
 					tc.description,
 					tc.url,
@@ -326,6 +340,7 @@ func TestEvent_Getters(t *testing.T) {
 					tc.magnitude,
 					tc.eventType,
 					tc.eventTime,
+					tc.updatedTime,
 					tc.status,
 					tc.description,
 					tc.url,
@@ -341,7 +356,7 @@ func TestEvent_Getters(t *testing.T) {
 				assert.Equal(t, tc.status, event.Status())
 				assert.Equal(t, tc.description, event.Description())
 				assert.Equal(t, tc.url, event.URL())
-				assert.False(t, event.Updated().IsZero(), "Updated time should be set to current time")
+				assert.Equal(t, tc.updatedTime, event.Updated())
 			})
 		}
 	})
@@ -384,6 +399,7 @@ func TestEvent_IsSignificant(t *testing.T) {
 				tt.magnitude,
 				testTypeEarthquake,
 				testTime1,
+				testUpdated1,
 				"reviewed",
 				"Test event",
 				"https://test.usgs.gov/test123",
@@ -404,6 +420,7 @@ func TestEvent_UpdateStatus(t *testing.T) {
 			testMagModerate,
 			testTypeEarthquake,
 			testTime1,
+			testUpdated1,
 			"reviewed",
 			"M 5.0 - Los Angeles, CA",
 			"https://earthquake.usgs.gov/earthquakes/eventpage/us1000abc",

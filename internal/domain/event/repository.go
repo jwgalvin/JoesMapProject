@@ -9,8 +9,8 @@ import (
 type Repository interface {
 	Save(ctx context.Context, event *Event) error
 	FindByID(ctx context.Context, id string) (*Event, error)
-	FindAll(ctx context.Context, QueryCriteria *QueryCriteria) ([]*Event, error)
-	Count(ctx context.Context, QueryCriteria *QueryCriteria) (int64, error)
+	FindAll(ctx context.Context, criteria *QueryCriteria) ([]*Event, error)
+	Count(ctx context.Context, criteria *QueryCriteria) (int64, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -39,11 +39,11 @@ func NewQueryCriteria() *QueryCriteria {
 }
 
 func (c *QueryCriteria) WithMagnitudeRange(minMag, maxMag float64) error {
-	if minMag < -1.0 || maxMag > 10.0 {
-		return fmt.Errorf("invalid magnitude range: minMag must be >= -1.0 and maxMag must be <= 10.0")
+	if minMag < -1.0 || minMag > 10.0 {
+		return fmt.Errorf("invalid magnitude range: minMag must be between -1.0 and 10.0, got %f", minMag)
 	}
 	if maxMag < -1.0 || maxMag > 10.0 {
-		return fmt.Errorf("invalid magnitude range: maxMag must be >= -1.0 and <= 10.0")
+		return fmt.Errorf("invalid magnitude range: maxMag must be between -1.0 and 10.0, got %f", maxMag)
 	}
 	if maxMag < minMag {
 		return fmt.Errorf("invalid magnitude range: maxMag cannot be less than minMag")
@@ -87,11 +87,13 @@ func (c *QueryCriteria) WithStatuses(statuses ...string) error {
 	if len(statuses) == 0 {
 		return fmt.Errorf("at least one status must be specified")
 	}
+	// Status values are intentionally open-ended to match the USGS feed (e.g. "automatic", "reviewed", "deleted").
 	c.Statuses = statuses
 	return nil
 }
 
 func (c *QueryCriteria) WithPagination(limit, offset int) error {
+	// limit=0 is permitted and means "return no rows"; callers wanting defaults should use NewQueryCriteria.
 	if limit < 0 {
 		return fmt.Errorf("limit must be non-negative, got %d", limit)
 	}

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jwgal/JoesMapProject/internal/domain/event"
+	"github.com/jwgal/geopulse/internal/domain/event"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite" // Pure-Go SQLite driver
@@ -33,9 +33,12 @@ CREATE TABLE IF NOT EXISTS events (
 
 var (
 	// Helper time values for tests
-	testTime1 = time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
-	testTime2 = time.Date(2024, 2, 20, 14, 45, 0, 0, time.UTC)
-	testTime3 = time.Date(2024, 3, 10, 8, 15, 0, 0, time.UTC)
+	testTime1    = time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
+	testTime2    = time.Date(2024, 2, 20, 14, 45, 0, 0, time.UTC)
+	testTime3    = time.Date(2024, 3, 10, 8, 15, 0, 0, time.UTC)
+	testUpdated1 = time.Date(2024, 1, 15, 11, 0, 0, 0, time.UTC)
+	testUpdated2 = time.Date(2024, 2, 20, 15, 0, 0, 0, time.UTC)
+	testUpdated3 = time.Date(2024, 3, 10, 9, 0, 0, 0, time.UTC)
 
 	// Common test value objects
 	testLocationLA, _    = event.NewLocation(34.05, -118.25, 10.0)
@@ -56,15 +59,15 @@ var testEvents = []struct {
 }{
 	{
 		name:  "Los Angeles earthquake",
-		event: mustNewEvent("us1000abc1", testLocationLA, "5 km NW of Los Angeles, CA", testMagModerate, testTypeEarthquake, testTime1, "reviewed", "Earthquake detected", "https://earthquake.usgs.gov/earthquakes/eventpage/us1000abc1"),
+		event: mustNewEvent("us1000abc1", testLocationLA, "5 km NW of Los Angeles, CA", testMagModerate, testTypeEarthquake, testTime1, testUpdated1, "reviewed", "Earthquake detected", "https://earthquake.usgs.gov/earthquakes/eventpage/us1000abc1"),
 	},
 	{
 		name:  "Tokyo deep earthquake",
-		event: mustNewEvent("us2000xyz2", testLocationTokyo, "20 km E of Tokyo, Japan", testMagLarge, testTypeEarthquake, testTime2, "automatic", "Large earthquake", "https://earthquake.usgs.gov/earthquakes/eventpage/us2000xyz2"),
+		event: mustNewEvent("us2000xyz2", testLocationTokyo, "20 km E of Tokyo, Japan", testMagLarge, testTypeEarthquake, testTime2, testUpdated2, "automatic", "Large earthquake", "https://earthquake.usgs.gov/earthquakes/eventpage/us2000xyz2"),
 	},
 	{
 		name:  "Mexico deep event",
-		event: mustNewEvent("us3000def3", testLocationDeep, "Mexico City, Mexico", testMagModerate, testTypeEarthquake, testTime3, "reviewed", "Deep earthquake", "https://earthquake.usgs.gov/earthquakes/eventpage/us3000def3"),
+		event: mustNewEvent("us3000def3", testLocationDeep, "Mexico City, Mexico", testMagModerate, testTypeEarthquake, testTime3, testUpdated3, "reviewed", "Deep earthquake", "https://earthquake.usgs.gov/earthquakes/eventpage/us3000def3"),
 	},
 }
 
@@ -82,8 +85,8 @@ func setupTestDB(t *testing.T) *sql.DB {
 }
 
 // mustNewEvent creates an event or panics (for test fixtures only)
-func mustNewEvent(id string, location event.Location, place string, magnitude event.Magnitude, eventType event.Type, eventTime time.Time, status, description, url string) *event.Event {
-	e, err := event.NewEvent(id, location, place, magnitude, eventType, eventTime, status, description, url)
+func mustNewEvent(id string, location event.Location, place string, magnitude event.Magnitude, eventType event.Type, eventTime, updatedTime time.Time, status, description, url string) *event.Event {
+	e, err := event.NewEvent(id, location, place, magnitude, eventType, eventTime, updatedTime, status, description, url)
 	if err != nil {
 		panic(err)
 	}
@@ -145,6 +148,7 @@ func TestSQLiteEventRepository_Save(t *testing.T) {
 			updatedMag,
 			testTypeEarthquake,
 			testTime1,
+			testUpdated1,
 			"reviewed",
 			"Updated description",
 			"https://updated.url",
@@ -437,7 +441,7 @@ func TestSQLiteEventRepository_FindAll_EventTypeFilter(t *testing.T) {
 	explosionMag, _ := event.NewMagnitude(1.5, "ml")
 	explosionType, _ := event.NewType("explosion")
 	explosionEvent := mustNewEvent("us4000exp1", explosionLoc, "Paris, France",
-		explosionMag, explosionType, testTime1, "reviewed", "Explosion event", "https://test.url")
+		explosionMag, explosionType, testTime1, testUpdated1, "reviewed", "Explosion event", "https://test.url")
 	err := repo.Save(ctx, explosionEvent)
 	require.NoError(t, err)
 
@@ -832,6 +836,7 @@ func TestSQLiteEventRepository_DataIntegrity(t *testing.T) {
 			mag,
 			eventType,
 			testTime1,
+			testUpdated1,
 			"reviewed",
 			"Description with émojis 🌍 and spëcial çhars™",
 			"https://test.url/path?query=value&foo=bar",
@@ -865,6 +870,7 @@ func TestSQLiteEventRepository_DataIntegrity(t *testing.T) {
 			mag,
 			eventType,
 			testTime1,
+			testUpdated1,
 			"reviewed",
 			"Test",
 			"https://test.url",
@@ -908,6 +914,7 @@ func TestSQLiteEventRepository_DataIntegrity(t *testing.T) {
 					mag,
 					eventType,
 					testTime1,
+					testUpdated1,
 					"reviewed",
 					"Test",
 					"https://test.url",
@@ -967,6 +974,7 @@ func TestSQLiteEventRepository_SQLInjectionProtection(t *testing.T) {
 			mag,
 			eventType,
 			testTime1,
+			testUpdated1,
 			"reviewed",
 			"Description with SQL: INSERT INTO events VALUES ('hack');",
 			"https://test.url'; DROP TABLE events; --",

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jwgal/JoesMapProject/internal/domain/event"
+	"github.com/jwgal/geopulse/internal/domain/event"
 )
 
 const insertEventQuery = `
@@ -363,6 +363,11 @@ func reconstructEventFromScanner(scanner rowScanner) (*event.Event, error) {
 		return nil, err
 	}
 
+	updatedAtParsed, err := parseTimeFlexible(updatedAt)
+	if err != nil {
+		return nil, err
+	}
+
 	eventTypeObj, err := event.NewType(eventType)
 	if err != nil {
 		return nil, err
@@ -375,6 +380,7 @@ func reconstructEventFromScanner(scanner rowScanner) (*event.Event, error) {
 		magnitude,
 		eventTypeObj,
 		eventTimeParsed,
+		updatedAtParsed,
 		status,
 		description,
 		url,
