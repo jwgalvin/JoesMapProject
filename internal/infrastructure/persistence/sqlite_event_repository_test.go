@@ -116,8 +116,8 @@ func TestSQLiteEventRepository_Save(t *testing.T) {
 				require.NoError(t, err, "Save should not return error")
 
 				// Verify event was saved by retrieving it
-				retrieved, err := repo.FindbyID(ctx, tc.event.ID())
-				require.NoError(t, err, "FindbyID should not return error")
+				retrieved, err := repo.FindByID(ctx, tc.event.ID())
+				require.NoError(t, err, "FindByID should not return error")
 				require.NotNil(t, retrieved, "Retrieved event should not be nil")
 
 				assert.Equal(t, tc.event.ID(), retrieved.ID())
@@ -159,14 +159,14 @@ func TestSQLiteEventRepository_Save(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify update worked
-		retrieved, err := repo.FindbyID(ctx, originalEvent.ID())
+		retrieved, err := repo.FindByID(ctx, originalEvent.ID())
 		require.NoError(t, err)
 		assert.Equal(t, 6.5, retrieved.Magnitude().Value(), "Magnitude should be updated")
 		assert.Equal(t, "Updated location", retrieved.Place(), "Place should be updated")
 	})
 }
 
-func TestSQLiteEventRepository_FindbyID(t *testing.T) {
+func TestSQLiteEventRepository_FindByID(t *testing.T) {
 	t.Run("Find existing event", func(t *testing.T) {
 		db := setupTestDB(t)
 		defer db.Close()
@@ -179,7 +179,7 @@ func TestSQLiteEventRepository_FindbyID(t *testing.T) {
 		require.NoError(t, err)
 
 		// Find by ID
-		retrieved, err := repo.FindbyID(ctx, testEvent.ID())
+		retrieved, err := repo.FindByID(ctx, testEvent.ID())
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 
@@ -194,7 +194,7 @@ func TestSQLiteEventRepository_FindbyID(t *testing.T) {
 		repo := NewSQLiteEventRepository(db)
 		ctx := context.Background()
 
-		retrieved, err := repo.FindbyID(ctx, "nonexistent-id")
+		retrieved, err := repo.FindByID(ctx, "nonexistent-id")
 		assert.Error(t, err, "Should return error for non-existent event")
 		assert.Equal(t, sql.ErrNoRows, err, "Should return sql.ErrNoRows")
 		assert.Nil(t, retrieved)
@@ -333,7 +333,7 @@ func TestSQLiteEventRepository_Delete(t *testing.T) {
 		require.NoError(t, err, "Delete should not return error")
 
 		// Verify event is deleted
-		_, err = repo.FindbyID(ctx, testEvent.ID())
+		_, err = repo.FindByID(ctx, testEvent.ID())
 		assert.Error(t, err, "FindbyID should return error after deletion")
 		assert.Equal(t, sql.ErrNoRows, err)
 	})
@@ -763,7 +763,7 @@ func TestSQLiteEventRepository_ContextCancellation(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 
-		result, err := repo.FindbyID(ctx, "any-id")
+		result, err := repo.FindByID(ctx, "any-id")
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -797,7 +797,7 @@ func TestSQLiteEventRepository_DataIntegrity(t *testing.T) {
 				require.NoError(t, err)
 
 				// Retrieve event
-				retrieved, err := repo.FindbyID(ctx, tc.event.ID())
+				retrieved, err := repo.FindByID(ctx, tc.event.ID())
 				require.NoError(t, err)
 
 				// Verify all fields
@@ -845,7 +845,7 @@ func TestSQLiteEventRepository_DataIntegrity(t *testing.T) {
 		err := repo.Save(ctx, specialEvent)
 		require.NoError(t, err)
 
-		retrieved, err := repo.FindbyID(ctx, "us-special-123")
+		retrieved, err := repo.FindByID(ctx, "us-special-123")
 		require.NoError(t, err)
 		assert.Equal(t, specialEvent.Place(), retrieved.Place())
 		assert.Equal(t, specialEvent.Description(), retrieved.Description())
@@ -879,7 +879,7 @@ func TestSQLiteEventRepository_DataIntegrity(t *testing.T) {
 		err := repo.Save(ctx, extremeEvent)
 		require.NoError(t, err)
 
-		retrieved, err := repo.FindbyID(ctx, "extreme-coords")
+		retrieved, err := repo.FindByID(ctx, "extreme-coords")
 		require.NoError(t, err)
 		assert.InDelta(t, 89.99, retrieved.Location().LatitudeValue(), 0.001)
 		assert.InDelta(t, 179.99, retrieved.Location().LongitudeValue(), 0.001)
@@ -923,7 +923,7 @@ func TestSQLiteEventRepository_DataIntegrity(t *testing.T) {
 				err := repo.Save(ctx, e)
 				require.NoError(t, err)
 
-				retrieved, err := repo.FindbyID(ctx, "mag-"+tc.name)
+				retrieved, err := repo.FindByID(ctx, "mag-"+tc.name)
 				require.NoError(t, err)
 				assert.InDelta(t, tc.mag, retrieved.Magnitude().Value(), 0.001)
 			})
@@ -945,7 +945,7 @@ func TestSQLiteEventRepository_SQLInjectionProtection(t *testing.T) {
 
 		// Attempt SQL injection in ID
 		maliciousID := "'; DROP TABLE events; --"
-		result, err := repo.FindbyID(ctx, maliciousID)
+		result, err := repo.FindByID(ctx, maliciousID)
 
 		// Should safely handle malicious input
 		assert.Error(t, err) // Not found
@@ -984,7 +984,7 @@ func TestSQLiteEventRepository_SQLInjectionProtection(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify event was saved with malicious strings as literal data
-		retrieved, err := repo.FindbyID(ctx, "sql-test")
+		retrieved, err := repo.FindByID(ctx, "sql-test")
 		require.NoError(t, err)
 		assert.Contains(t, retrieved.Place(), "SELECT * FROM")
 		assert.Contains(t, retrieved.Description(), "INSERT INTO")
