@@ -121,7 +121,7 @@ func (r *SQLiteEventRepository) Save(ctx context.Context, event *event.Event) er
 	return err
 }
 
-func (r *SQLiteEventRepository) FindbyID(ctx context.Context, id string) (*event.Event, error) {
+func (r *SQLiteEventRepository) FindByID(ctx context.Context, id string) (*event.Event, error) {
 	row := r.db.QueryRowContext(ctx, selectEventByIDQuery, id)
 	return reconstructEventFromRow(row)
 }
